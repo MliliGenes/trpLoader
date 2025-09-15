@@ -2,32 +2,31 @@
 [BITS 16]
 
 start:
-	; Clear interrupts during setup
-	cli
-
-	; Set up segments
-    ; The bootloader is loaded at 0x7C00, so we set segments accordingly
-	mov ax, 0x07C0      ; Calculate segment (0x7C00 >> 4)
-    mov ds, ax          ; Data segment
-    mov es, ax          ; Extra segment
-    mov ss, ax          ; Stack segment
-
-	; Set up stack
-    mov sp, 0x1000      ; Stack grows downward from 0x8C00
+    ; Clear interrupts during setup
+    cli
+    
+    ; Set up segments
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    
+    ; Set stack pointer to a safe location (below bootloader)
+    mov sp, 0x8000
     
     ; Re-enable interrupts
-    sti	
-
-	; Print hello message
+    sti
+    
+    ; Print hello message
     mov si, hello_msg
     call print_string
     
-    ; Infinite loop 
+    ; Infinite loop
     jmp $
 
-; Function: print string wa 3la 9wadaaaaa
+; Function: print string
 print_string:
-    mov ah, 0x0E        ; BIOS teletype function ahh instruction
+    mov ah, 0x0E        ; BIOS teletype function
 .loop:
     lodsb               ; Load byte from [SI] into AL, increment SI
     cmp al, 0           ; Check for null terminator
@@ -37,7 +36,7 @@ print_string:
 .done:
     ret
 
-hello_msg db 'Hello World from Bootloader!', 13, 10, 0
+hello_msg db 'Welcome to TrpLoader!', 13, 10, 0
 
 ; Pad to 510 bytes and add boot signature
 times 510-($-$$) db 0

@@ -1,30 +1,26 @@
 TRP = trpLoader
-
-HEADER_DIR = include
-
-HEADERS = $(wildcard $(HEADER_DIR)/*.h)
-
 ASM_DIR = boot
 BUILD_DIR = build
-SOURCE_DIR = src
 
-C_FILES = $(wildcard $(SOURCE_DIR)/*.c)
 ASM_FILES = $(wildcard $(ASM_DIR)/*.asm)
+BIN_FILES = $(ASM_FILES:$(ASM_DIR)/%.asm=$(BUILD_DIR)/%.bin)
 
-all : $(TRP)
+NASM = nasm
+NASMFLAGS = -f bin
 
-$(TRP) : $(C_FILES) $(ASM_FILES) $(HEADERS)
-	@echo "Building $(TRP)..."
-	@gcc -o $(TRP) $(C_FILES) $(ASM_FILES) -I$(HEADER_DIR)
+all: $(BUILD_DIR)/$(TRP).bin
 
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-re : clean all
+# Build the bootloader binary
+$(BUILD_DIR)/$(TRP).bin: $(ASM_FILES) | $(BUILD_DIR)
+	$(NASM) $(NASMFLAGS) $(ASM_DIR)/boot.asm -o $@
 
-clean :
-	@echo "Cleaning up..."
-	@rm -f $(TRP) *.o
+re: clean all
 
-fclean :
-	@echo "Cleaning up Fortran files..."
-	@rm -f *.mod *.f90
+run: $(BUILD_DIR)/$(TRP).bin
+	qemu-system-i386 -drive format=raw,file=$< -nographic
 
+clean:
+	rm -rf $(BUILD_DIR)
